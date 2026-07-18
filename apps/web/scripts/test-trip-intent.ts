@@ -4,7 +4,6 @@ const reference = new Date(2026, 6, 18, 12, 0, 0);
 type Expectation = { key: string; actual: unknown; expected: unknown };
 
 function verify(prompt: string, expectations: Expectation[]) {
-  const result = parseTripIntent(prompt, reference);
   const failed = expectations.filter(({ actual, expected }) => actual !== expected);
   if (failed.length) {
     throw new Error(`${prompt}\n${failed.map(({ key, actual, expected }) => `${key}: expected ${String(expected)}, got ${String(actual)}`).join('\n')}`);
@@ -56,6 +55,13 @@ verify('Kerala family trip', [
   { key: 'destination', actual: parseTripIntent('Kerala family trip', reference).destination.value, expected: 'Kerala' },
   { key: 'travelers', actual: parseTripIntent('Kerala family trip', reference).travelers.value, expected: 'Family' },
   { key: 'trip type', actual: parseTripIntent('Kerala family trip', reference).tripType, expected: 'Family vacation' },
+]);
+
+verify('Jaipur for 3 days under ₹50000', [
+  { key: 'destination', actual: parseTripIntent('Jaipur for 3 days under ₹50000', reference).destination.value, expected: 'Jaipur' },
+  { key: 'duration', actual: parseTripIntent('Jaipur for 3 days under ₹50000', reference).duration.value, expected: 3 },
+  { key: 'budget', actual: parseTripIntent('Jaipur for 3 days under ₹50000', reference).budget.value, expected: 50000 },
+  { key: 'currency', actual: parseTripIntent('Jaipur for 3 days under ₹50000', reference).currency.value, expected: 'INR' },
 ]);
 
 verify('Solo Ladakh bike trip', [

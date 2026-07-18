@@ -26,7 +26,7 @@ const MONTHS = [
 const DESTINATIONS = [
   'Abu Dhabi', 'Amsterdam', 'Bali', 'Bangkok', 'Barcelona', 'Bhopal', 'Bora Bora',
   'Delhi', 'Dubai', 'Europe', 'Goa', 'Himachal Pradesh', 'Himachal', 'India', 'Istanbul',
-  'Japan', 'Kashmir', 'Kerala', 'Kyoto', 'Ladakh', 'London', 'Manali', 'Mumbai', 'New York',
+  'Japan', 'Jaipur', 'Kashmir', 'Kerala', 'Kyoto', 'Ladakh', 'London', 'Manali', 'Mumbai', 'New York',
   'Paris', 'Rajasthan', 'Rome', 'Seoul', 'Singapore', 'Switzerland', 'Thailand', 'Tokyo',
   'Udaipur', 'Vietnam',
 ];

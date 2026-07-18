@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { apiUrl, Trip } from '@/lib/trips';
 import { parseTripIntent, TripIntent } from '@/lib/trip-intent';
@@ -38,13 +38,7 @@ export function TravelOS() {
   const [error, setError] = useState('');
 
   useEffect(() => { fetch(`${apiUrl}/api/v1/journeys?owner_id=${encodeURIComponent(ownerId())}`).then((r) => r.ok ? r.json() : []).then(setSaved).catch(() => undefined); }, []);
-  useEffect(() => {
-    if (!plannerPrompt.trim()) { setExtracted(false); setIntent(null); return; }
-    const timer = window.setTimeout(extractTrip, 450);
-    return () => window.clearTimeout(timer);
-  }, [plannerPrompt]);
-
-  function extractTrip() {
+  const extractTrip = useCallback(() => {
     const parsed = parseTripIntent(plannerPrompt); setIntent(parsed);
     setForm((current) => ({
       ...current,
@@ -57,7 +51,13 @@ export function TravelOS() {
       intent: plannerPrompt,
     }));
     setExtracted(true);
-  }
+  }, [plannerPrompt]);
+
+  useEffect(() => {
+    if (!plannerPrompt.trim()) { setExtracted(false); setIntent(null); return; }
+    const timer = window.setTimeout(extractTrip, 450);
+    return () => window.clearTimeout(timer);
+  }, [plannerPrompt, extractTrip]);
 
   async function createTrip(event: FormEvent) {
     event.preventDefault(); setError(''); setIsRevealing(false); setLoading(true);
