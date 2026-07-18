@@ -51,7 +51,19 @@ agents/             Agent specifications and tool contracts
    uvicorn app.main:app --reload
    ```
 
-No application behavior is implemented in this initial commit.
+## Configure the full MVP
+
+The journey workflow requires both OpenAI and Supabase credentials in `apps/api/.env`:
+
+```dotenv
+OPENAI_API_KEY=...
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+Apply [`supabase/migrations/202607180001_create_trips.sql`](supabase/migrations/202607180001_create_trips.sql) in the Supabase SQL editor or through the Supabase CLI before creating trips. The service-role credential is used only by FastAPI and must never be placed in browser-visible environment variables.
+
+With the API and web application running, enter a destination, dates, budget, and a travel intent. RoamVerse invokes the Experience Designer, Budget, Weather, and Food agents before the Journey Coordinator saves and renders a shareable Journey Drop.
 
 ## Documentation
 
