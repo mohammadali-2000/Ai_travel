@@ -80,7 +80,7 @@ Never claim live availability, live weather, prices, reservations, or exact open
 def save_trip(trip: TripCreate, experience: TripExperience, agents: list[AgentStatus]) -> TripRecord:
     record = TripRecord(id=str(uuid4()), owner_id=trip.owner_id, destination=trip.destination, start_date=trip.start_date, end_date=trip.end_date, budget=trip.budget, currency=trip.currency, travelers=trip.travelers, intent=trip.intent, share_slug=secrets.token_urlsafe(8), experience=experience, agents=agents)
     if _uses_supabase():
-        _supabase().table("trips").insert(record.model_dump(mode="json")).execute()
+        _supabase().table("trips").insert(record.model_dump(mode="json", exclude_none=True)).execute()
     else:
         _LOCAL_TRIPS[record.id] = record
     return record
