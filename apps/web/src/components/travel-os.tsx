@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -14,6 +15,35 @@ const destinations = [
 ];
 
 export function TravelOS() {
+  const [intent, setIntent] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [error, setError] = useState('');
+
+  async function createJourney() {
+    if (!intent.trim() || isStreaming) return;
+    setAnswer(''); setError(''); setIsStreaming(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/journeys/concept/stream`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intent }),
+      });
+      if (!response.ok || !response.body) throw new Error('The journey team is unavailable right now.');
+      const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = '';
+      while (true) {
+        const { value, done } = await reader.read(); if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const messages = buffer.split('\n\n'); buffer = messages.pop() ?? '';
+        for (const message of messages) {
+          if (message.startsWith('data: ')) {
+            const payload = JSON.parse(message.slice(6)) as { delta?: string };
+            if (payload.delta) setAnswer((current) => current + payload.delta);
+          }
+        }
+      }
+    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Unable to create your journey.'); }
+    finally { setIsStreaming(false); }
+  }
+
   return (
     <main className="aurora-page relative min-h-screen overflow-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
       <div aria-hidden className="aurora-orb absolute -top-48 left-1/2 h-[520px] w-[720px] -translate-x-1/2 rounded-full opacity-80" />
@@ -43,14 +73,16 @@ export function TravelOS() {
               <span className="mb-1.5 text-lg text-violet-300">✦</span>
               <label className="flex-1">
                 <span className="sr-only">Travel idea</span>
-                <textarea className="h-12 w-full resize-none bg-transparent pt-1 text-[15px] leading-6 text-white outline-none placeholder:text-zinc-500" placeholder="Ask anything — a mood, a place, a moment…" />
+                <textarea value={intent} onChange={(event) => setIntent(event.target.value)} className="h-12 w-full resize-none bg-transparent pt-1 text-[15px] leading-6 text-white outline-none placeholder:text-zinc-500" placeholder="Ask anything — a mood, a place, a moment…" />
               </label>
-              <button className="mb-1 grid h-9 w-9 place-items-center rounded-xl bg-white text-lg text-zinc-900 transition hover:scale-105" aria-label="Send prompt">↑</button>
+              <button onClick={createJourney} disabled={!intent.trim() || isStreaming} className="mb-1 grid h-9 w-9 place-items-center rounded-xl bg-white text-lg text-zinc-900 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40" aria-label="Send prompt">{isStreaming ? '·' : '↑'}</button>
             </div>
             <div className="flex gap-2 overflow-x-auto px-2 pb-1 pt-3 text-xs text-zinc-400">
               {['A cinematic long weekend', 'Find my next obsession', 'Build a shared escape'].map((idea) => <button key={idea} className="whitespace-nowrap rounded-full border border-white/10 bg-white/[.04] px-3 py-1.5 transition hover:bg-white/[.09] hover:text-zinc-100">{idea}</button>)}
             </div>
           </motion.section>
+
+          {(answer || error || isStreaming) && <motion.section variants={fadeUp} className="glass mx-auto mt-4 max-w-3xl rounded-[22px] p-5" aria-live="polite"><div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[.16em] text-violet-200"><span className="h-1.5 w-1.5 rounded-full bg-violet-300" /> Journey Coordinator</div>{error ? <p className="mt-3 text-sm text-rose-300">{error}</p> : <p className="mt-3 whitespace-pre-wrap text-[15px] leading-7 text-zinc-200">{answer || 'Gathering a point of view…'}{isStreaming && <span className="ml-1 inline-block h-4 w-1 animate-pulse bg-violet-300 align-middle" />}</p>}</motion.section>}
 
           <motion.section variants={fadeUp} id="discover" className="mt-7 grid gap-4 lg:grid-cols-12">
             <article className="glass card-hover relative min-h-[315px] overflow-hidden rounded-[22px] p-6 sm:p-7 lg:col-span-7">

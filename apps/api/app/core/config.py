@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     app_env: str = "development"
     log_level: str = "INFO"
     cors_origins: str = "http://localhost:3000"
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-4.1-mini"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

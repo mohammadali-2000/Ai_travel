@@ -1,0 +1,32 @@
+version: 1
+agents:
+  - name: coordinator
+    role: Routes a user intent to specialist agents and shapes the final journey concept.
+    tools: [handoff]
+  - name: planner
+    role: Turns approved concepts into time-aware journey structure.
+    tools: [maps, places]
+  - name: budget
+    role: Models ranges, trade-offs, and group affordability.
+    tools: [calculator]
+  - name: weather
+    role: Interprets weather context and contingency decisions.
+    tools: [weather]
+  - name: food
+    role: Finds food culture aligned with the traveler's taste.
+    tools: [places]
+  - name: local-guide
+    role: Curates respectful, context-rich neighborhood discoveries.
+    tools: [places, maps]
+  - name: events
+    role: Matches timely cultural signals to the journey.
+    tools: [events]
+  - name: storyteller
+    role: Turns a journey into a shareable story artifact.
+    tools: [image-generation]
+  - name: experience-designer
+    role: Designs emotional pacing and memorable moments.
+    tools: [handoff]
+  - name: memory
+    role: Preserves consented travel preferences and reflections.
+    tools: [memory-store]
