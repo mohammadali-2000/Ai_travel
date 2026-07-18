@@ -1,0 +1,14 @@
+{
+  "name": "roamverse",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "npm@10.9.2",
+  "workspaces": ["apps/web", "packages/*"],
+  "scripts": {
+    "dev:web": "npm --workspace @roamverse/web run dev",
+    "build:web": "npm --workspace @roamverse/web run build",
+    "lint:web": "npm --workspace @roamverse/web run lint",
+    "typecheck": "npm --workspace @roamverse/web run typecheck"
+  },
+  "engines": { "node": ">=20.11" }
+}
