@@ -15,7 +15,7 @@ verify('I wanted to travel Bhopal for 10 days', [
   { key: 'destination', actual: parseTripIntent('I wanted to travel Bhopal for 10 days', reference).destination.value, expected: 'Bhopal' },
   { key: 'duration', actual: parseTripIntent('I wanted to travel Bhopal for 10 days', reference).duration.value, expected: 10 },
   { key: 'start date', actual: parseTripIntent('I wanted to travel Bhopal for 10 days', reference).startDate.value, expected: '2026-07-18' },
-  { key: 'end date', actual: parseTripIntent('I wanted to travel Bhopal for 10 days', reference).endDate.value, expected: '2026-07-28' },
+  { key: 'end date', actual: parseTripIntent('I wanted to travel Bhopal for 10 days', reference).endDate.value, expected: '2026-07-27' },
   { key: 'travelers', actual: parseTripIntent('I wanted to travel Bhopal for 10 days', reference).travelers.value, expected: 'Solo' },
 ]);
 
@@ -69,6 +69,22 @@ verify('Solo Ladakh bike trip', [
   { key: 'travelers', actual: parseTripIntent('Solo Ladakh bike trip', reference).travelers.value, expected: 'Solo' },
   { key: 'style', actual: parseTripIntent('Solo Ladakh bike trip', reference).style, expected: 'Adventure' },
   { key: 'trip type', actual: parseTripIntent('Solo Ladakh bike trip', reference).tripType, expected: 'Bike trip' },
+]);
+
+verify('I want to travel to Raisin MP India with 2000 budget', [
+  { key: 'destination', actual: parseTripIntent('I want to travel to Raisin MP India with 2000 budget', reference).destination.value, expected: 'Raisen' },
+  { key: 'budget', actual: parseTripIntent('I want to travel to Raisin MP India with 2000 budget', reference).budget.value, expected: 2000 },
+  { key: 'currency', actual: parseTripIntent('I want to travel to Raisin MP India with 2000 budget', reference).currency.value, expected: 'INR' },
+  { key: 'dates', actual: parseTripIntent('I want to travel to Raisin MP India with 2000 budget', reference).dates.value, expected: 'Flexible 3-day trip' },
+  { key: 'start date', actual: parseTripIntent('I want to travel to Raisin MP India with 2000 budget', reference).startDate.value, expected: '2026-07-18' },
+  { key: 'end date', actual: parseTripIntent('I want to travel to Raisin MP India with 2000 budget', reference).endDate.value, expected: '2026-07-20' },
+]);
+
+verify('i wanted to vist kerla for 5 days my budget is 1000 rupees', [
+  { key: 'destination', actual: parseTripIntent('i wanted to vist kerla for 5 days my budget is 1000 rupees', reference).destination.value, expected: 'Kerala' },
+  { key: 'duration', actual: parseTripIntent('i wanted to vist kerla for 5 days my budget is 1000 rupees', reference).duration.value, expected: 5 },
+  { key: 'budget', actual: parseTripIntent('i wanted to vist kerla for 5 days my budget is 1000 rupees', reference).budget.value, expected: 1000 },
+  { key: 'currency', actual: parseTripIntent('i wanted to vist kerla for 5 days my budget is 1000 rupees', reference).currency.value, expected: 'INR' },
 ]);
 
 console.log('All intent extraction cases passed.');

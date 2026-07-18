@@ -16,7 +16,17 @@ const generationStages = [
   ['🌦', 'Weather Agent', 'Preparing graceful contingencies…'],
   ['✦', 'Story Agent', 'Writing the journey reveal…'],
 ];
-const field = 'input-glass mt-2 px-3 py-2.5 text-sm placeholder:text-zinc-600';
+
+function apiErrorMessage(detail: unknown) {
+  if (typeof detail === 'string') return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => item && typeof item === 'object' && 'msg' in item && typeof item.msg === 'string' ? item.msg : null)
+      .filter((message): message is string => Boolean(message));
+    if (messages.length) return messages.join(' ');
+  }
+  return 'Journey generation could not start. Please check your trip details and try again.';
+}
 
 function ownerId() {
   const key = 'roamverse-owner-id';
@@ -60,13 +70,17 @@ export function TravelOS() {
   }, [plannerPrompt, extractTrip]);
 
   async function createTrip(event: FormEvent) {
-    event.preventDefault(); setError(''); setIsRevealing(false); setLoading(true);
+    event.preventDefault(); setError('');
+    if (!form.destination) { setError('I still need your destination before I can plan your journey.'); return; }
+    if (!form.budget || Number(form.budget) < 100) { setError('I still need your budget before I can plan your journey.'); return; }
+    if (!form.start_date || !form.end_date) { setError('I could not determine the trip dates. Please mention when you want to travel.'); return; }
+    setIsRevealing(false); setLoading(true);
     setStage(0);
     const progressTimer = window.setInterval(() => setStage((current) => Math.min(current + 1, generationStages.length - 1)), 1800);
     try {
       const response = await fetch(`${apiUrl}/api/v1/journeys`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, budget: Number(form.budget), travelers: Number(form.travelers), owner_id: ownerId() }) });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail ?? 'Journey generation was unavailable.');
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(apiErrorMessage(payload?.detail));
       setStage(generationStages.length - 1);
       setIsRevealing(true);
       await new Promise((resolve) => window.setTimeout(resolve, 900));
@@ -86,7 +100,6 @@ export function TravelOS() {
     ...(intent.tripType ? [['♡', intent.tripType]] : []),
     ...intent.interests.map((interest) => ['✦', interest]),
   ] as Array<[string, string | undefined]> : [];
-  const missingMessage = intent?.missing.filter((item) => item !== 'destination' && !(item === 'budget' && form.budget)) ?? [];
   const budgetStillMissing = Boolean(intent?.missing.includes('budget') && !form.budget);
 
   return <main className="aurora-page relative min-h-screen overflow-hidden px-4 py-4 sm:px-7">
@@ -99,28 +112,13 @@ export function TravelOS() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="grid gap-5 py-10 lg:grid-cols-[1.1fr_.9fr]">
         <section>
           <p className="text-xs font-medium uppercase tracking-[.22em] text-violet-300">Create a Journey Drop</p>
-          <h1 className="mt-4 max-w-xl text-4xl font-medium tracking-[-.055em] sm:text-6xl">A trip worth remembering starts with a feeling.</h1>
-          <p className="mt-5 max-w-lg text-lg leading-7 text-zinc-400">Give your AI travel team a destination, time, and budget. They’ll create a complete experience—not a generic itinerary.</p>
-          <form onSubmit={createTrip} className="glass mt-8 rounded-[22px] p-5 sm:p-6">
+          <form onSubmit={createTrip} className="glass mt-5 rounded-[22px] p-5 sm:p-6">
             <label className="block text-sm font-medium text-zinc-600">Describe your dream trip
-              <textarea value={plannerPrompt} onChange={(event) => setPlannerPrompt(event.target.value)} onBlur={extractTrip} className="input-glass mt-3 h-36 resize-none p-4 text-base" placeholder="I want to visit Japan from 1 Aug to 10 Aug. Budget around ₹1 lakh. I love anime, photography and local food." />
+              <textarea value={plannerPrompt} onChange={(event) => setPlannerPrompt(event.target.value)} onBlur={extractTrip} className="input-glass mt-3 h-36 resize-none p-4 text-base" placeholder="e.g. Kerala for 5 days under ₹5,000" />
             </label>
             {extracted && intent?.isConfident && <div className="mt-5 flex flex-wrap gap-2">
               {extractedChips.map(([icon, value]) => value && <span className="rounded-xl bg-violet-100 px-3 py-2 text-sm text-violet-800" key={`${icon}-${value}`}>{icon} {value}</span>)}
             </div>}
-            {extracted && intent && !intent.isConfident && <p className="mt-4 text-sm text-amber-700">I couldn&apos;t understand part of your request. Where would you like to go?</p>}
-            {extracted && intent?.isConfident && missingMessage.length > 0 && <p className="mt-4 text-sm text-zinc-600">I understood your destination. I still need your {missingMessage.join(' and ')}.</p>}
-            {extracted && intent?.isConfident && budgetStillMissing && <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
-              <label className="block text-sm font-medium text-violet-900" htmlFor="planner-budget">What budget should I plan around?</label>
-              <div className="mt-2 flex gap-2">
-                <input id="planner-budget" type="number" min="1" step="1" inputMode="numeric" placeholder="25000" value={form.budget} onChange={(event) => setForm({ ...form, budget: event.target.value, currency: form.currency || 'INR' })} className="input-glass min-w-0 flex-1 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400" />
-                <select aria-label="Budget currency" value={form.currency || 'INR'} onChange={(event) => setForm({ ...form, currency: event.target.value })} className="rounded-xl border border-violet-100 bg-white px-3 py-2 text-sm text-zinc-800 outline-none"><option value="INR">INR ₹</option><option value="USD">USD $</option><option value="EUR">EUR €</option><option value="GBP">GBP £</option></select>
-              </div>
-            </div>}
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <label className="text-sm text-zinc-600">Start date<input required type="date" value={form.start_date} onChange={(event) => setForm({ ...form, start_date: event.target.value })} className={field} /></label>
-              <label className="text-sm text-zinc-600">End date<input required type="date" value={form.end_date} onChange={(event) => setForm({ ...form, end_date: event.target.value })} className={field} /></label>
-            </div>
             <button disabled={loading || !form.destination || budgetStillMissing} className="mt-5 w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-medium text-white transition hover:scale-[1.01] disabled:opacity-50">{loading ? 'Your team is building the journey…' : 'Create my travel experience →'}</button>
             {error && <p role="alert" className="mt-3 text-sm text-rose-500">{error}</p>}
           </form>

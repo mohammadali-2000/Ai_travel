@@ -27,8 +27,15 @@ const DESTINATIONS = [
   'Abu Dhabi', 'Amsterdam', 'Bali', 'Bangkok', 'Barcelona', 'Bhopal', 'Bora Bora',
   'Delhi', 'Dubai', 'Europe', 'Goa', 'Himachal Pradesh', 'Himachal', 'India', 'Istanbul',
   'Japan', 'Jaipur', 'Kashmir', 'Kerala', 'Kyoto', 'Ladakh', 'London', 'Manali', 'Mumbai', 'New York',
-  'Paris', 'Rajasthan', 'Rome', 'Seoul', 'Singapore', 'Switzerland', 'Thailand', 'Tokyo',
+  'Paris', 'Raisen', 'Rajasthan', 'Rome', 'Seoul', 'Singapore', 'Switzerland', 'Thailand', 'Tokyo',
   'Udaipur', 'Vietnam',
+];
+
+// Common spellings users naturally use for smaller Indian destinations.
+// Keep the canonical form so the API, globe, and flag lookup all receive one value.
+const DESTINATION_ALIASES: Array<[RegExp, string]> = [
+  [/\bkerla\b/i, 'Kerala'],
+  [/\b(?:raisen|raisin)\b(?:\s*,?\s*(?:mp|madhya\s+pradesh))?(?:\s*,?\s*india)?/i, 'Raisen'],
 ];
 
 const INTERESTS: Array<[RegExp, string]> = [
@@ -65,6 +72,9 @@ function monthIndex(raw: string) {
 }
 
 function findDestination(text: string): ParsedField<string> {
+  const alias = DESTINATION_ALIASES.find(([pattern]) => pattern.test(text));
+  if (alias) return field(alias[1], 0.98);
+
   const known = DESTINATIONS
     .slice()
     .sort((left, right) => right.length - left.length)
@@ -83,7 +93,16 @@ function findDestination(text: string): ParsedField<string> {
 
 function parseBudget(text: string): { amount?: number; currency?: string } {
   const match = text.match(/(?:\b(?:under|below|around|about|budget(?:\s+of)?|for)\s*)?(₹|INR\b|\$|USD\b|€|EUR\b|£|GBP\b)\s*([\d,.]+)\s*(lakh|lac|lakhs|lacs|k|thousand)?\b|\b(?:under|below|around|about|budget(?:\s+of)?)\s+([\d,.]+)\s*(lakh|lac|lakhs|lacs|k|thousand)\b/i);
-  if (!match) return {};
+  if (!match) {
+    // Natural phrasing such as "Raisen, MP, India — 2000 budget" implies INR.
+    const trailingAmount = text.match(/\b([\d,.]+)\s*(lakh|lac|lakhs|lacs|k|thousand)?\s*(?:budget|rupees?|rs\.?)\b/i);
+    if (!trailingAmount) return {};
+    const numeric = Number(trailingAmount[1].replace(/,/g, ''));
+    if (!Number.isFinite(numeric)) return {};
+    const scale = (trailingAmount[2] ?? '').toLowerCase();
+    const multiplier = /lac|lakh/.test(scale) ? 100_000 : /k|thousand/.test(scale) ? 1_000 : 1;
+    return { amount: numeric * multiplier, currency: 'INR' };
+  }
   const symbol = match[1]?.toUpperCase();
   const raw = match[2] ?? match[4];
   const scale = (match[3] ?? match[5] ?? '').toLowerCase();
@@ -140,10 +159,15 @@ function parseDates(text: string, duration: number | undefined, reference: Date)
   const monthOnly = text.match(new RegExp(`\\b${MONTH_PATTERN}\\b`, 'i'))?.[1];
   if (duration) {
     const start = new Date(reference.getFullYear(), reference.getMonth(), reference.getDate(), 12);
-    const end = new Date(start); end.setDate(start.getDate() + duration);
+    const end = new Date(start); end.setDate(start.getDate() + duration - 1);
     return { label: `${duration} days`, start, end, month: monthOnly };
   }
-  return { label: monthOnly ? titleCase(monthOnly) : undefined, month: monthOnly };
+
+  // The planner is prompt-first. A person who has not mentioned dates should
+  // still be able to generate a flexible short journey without filling a form.
+  const start = new Date(reference.getFullYear(), reference.getMonth(), reference.getDate(), 12);
+  const end = new Date(start); end.setDate(start.getDate() + 2);
+  return { label: monthOnly ? `${titleCase(monthOnly)} · flexible 3-day trip` : 'Flexible 3-day trip', start, end, month: monthOnly };
 }
 
 export function parseTripIntent(input: string, referenceDate = new Date()): TripIntent {

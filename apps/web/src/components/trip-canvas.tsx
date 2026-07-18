@@ -1,32 +1,42 @@
 'use client';
 
-'use client';
-
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { JourneyGlobe } from '@/components/journey-globe';
 import type { Trip } from '@/lib/trips';
 
 const destinationFlags: Record<string, string> = {
   'Abu Dhabi': '🇦🇪', Amsterdam: '🇳🇱', Bali: '🇮🇩', Bangkok: '🇹🇭', Barcelona: '🇪🇸',
-  Bhopal: '🇮🇳', 'Bora Bora': '🇵🇫', Delhi: '🇮🇳', Dubai: '🇦🇪', Europe: '🌍', Goa: '🇮🇳',
+  Ahmedabad: '🇮🇳', Amritsar: '🇮🇳', Bangalore: '🇮🇳', Bhopal: '🇮🇳', 'Bora Bora': '🇵🇫',
+  Chennai: '🇮🇳', Delhi: '🇮🇳', Dubai: '🇦🇪', Europe: '🌍', Goa: '🇮🇳', Hyderabad: '🇮🇳',
   'Himachal Pradesh': '🇮🇳', Himachal: '🇮🇳', India: '🇮🇳', Istanbul: '🇹🇷', Japan: '🇯🇵',
-  Jaipur: '🇮🇳', Kashmir: '🇮🇳', Kerala: '🇮🇳', Kyoto: '🇯🇵', Ladakh: '🇮🇳', London: '🇬🇧',
-  Manali: '🇮🇳', Mumbai: '🇮🇳', 'New York': '🇺🇸', Paris: '🇫🇷', Rajasthan: '🇮🇳', Rome: '🇮🇹',
-  Seoul: '🇰🇷', Singapore: '🇸🇬', Switzerland: '🇨🇭', Thailand: '🇹🇭', Tokyo: '🇯🇵', Udaipur: '🇮🇳',
-  Vietnam: '🇻🇳',
+  Jaipur: '🇮🇳', Jodhpur: '🇮🇳', Kashmir: '🇮🇳', Kerala: '🇮🇳', Kyoto: '🇯🇵', Ladakh: '🇮🇳',
+  London: '🇬🇧', Manali: '🇮🇳', Mumbai: '🇮🇳', 'New York': '🇺🇸', Paris: '🇫🇷', Pune: '🇮🇳',
+  Rajasthan: '🇮🇳', Rishikesh: '🇮🇳', Rome: '🇮🇹', Seoul: '🇰🇷', Singapore: '🇸🇬',
+  Switzerland: '🇨🇭', Thailand: '🇹🇭', Tokyo: '🇯🇵', Udaipur: '🇮🇳', Varanasi: '🇮🇳', Vietnam: '🇻🇳',
 };
+
+function resolveFlag(destination: string) {
+  const normalized = destination.trim().toLocaleLowerCase();
+  const match = Object.entries(destinationFlags).find(([name]) => {
+    const key = name.toLocaleLowerCase();
+    return normalized === key || normalized.startsWith(`${key},`) || normalized.includes(key);
+  });
+  return match?.[1] ?? '🌍';
+}
 
 export function TripCanvas({ trip, shared = false }: { trip: Trip; shared?: boolean }) {
   const total = trip.experience.budget_breakdown.reduce((sum, line) => sum + line.amount, 0);
-  const flag = destinationFlags[trip.destination] ?? '🌍';
   const [activePoint, setActivePoint] = useState<string | null>(null);
   const [checked, setChecked] = useState<string[]>([]);
+  const [resolvedFlag, setResolvedFlag] = useState<string | null>(null);
+  const flag = resolvedFlag ?? resolveFlag(trip.destination);
   return <main className="aurora-page min-h-screen px-4 py-5 text-zinc-900 sm:px-8"><div className="mx-auto max-w-6xl">
     <header className="glass flex items-center justify-between rounded-2xl px-5 py-4"><Link href="/" className="flex items-center gap-2"><b className="grid h-8 w-8 place-items-center rounded-xl bg-violet-300 text-zinc-950">R</b>RoamVerse</Link>{!shared && <Link href={`/share/${trip.share_slug}`} className="rounded-xl border border-white/10 px-3 py-2 text-sm hover:bg-white/10">Share journey ↗</Link>}</header>
     <motion.section initial={{opacity:0,y:24}} animate={{opacity:1,y:0}} className="mt-7 overflow-hidden rounded-[30px] border border-white/70 bg-[radial-gradient(circle_at_75%_25%,rgba(255,196,223,.65),transparent_28%),radial-gradient(circle_at_25%_85%,rgba(127,204,255,.48),transparent_35%),linear-gradient(135deg,#fff,#eae8ff)] p-7 sm:p-12"><p className="text-xs font-medium uppercase tracking-[.2em] text-violet-700">{shared ? 'A RoamVerse Journey Drop' : 'Your travel magazine'}</p><div className="mt-8 flex items-start justify-between"><div><span className="text-4xl">{flag}</span><h1 className="mt-4 max-w-3xl text-4xl font-medium tracking-[-.06em] sm:text-6xl">{trip.experience.title}</h1><p className="mt-5 max-w-2xl text-lg leading-8 text-zinc-600">“{trip.experience.premise}”</p></div><span className="animate-bounce text-4xl">☀️</span></div><div className="mt-9 flex flex-wrap gap-2 text-sm text-zinc-700"><span className="rounded-full bg-white/65 px-3 py-1.5">{trip.destination}</span><span className="rounded-full bg-white/65 px-3 py-1.5">{trip.start_date} — {trip.end_date}</span><span className="rounded-full bg-white/65 px-3 py-1.5">{trip.currency} {total.toLocaleString()} estimated</span></div></motion.section>
     <section className="mt-4 grid gap-4 lg:grid-cols-12"><article className="glass rounded-[22px] p-6 lg:col-span-8"><p className="text-sm font-medium">Journey timeline</p><div className="mt-6 space-y-5">{trip.experience.itinerary.map((day) => <div className="grid gap-3 border-l border-violet-300/40 pl-5 sm:grid-cols-[80px_1fr]" key={day.day}><p className="text-xs uppercase tracking-wider text-violet-200">Day {day.day}</p><div><h2 className="text-lg">{day.title}</h2><p className="mt-1 text-sm text-zinc-400">{day.theme}</p><ul className="mt-3 flex flex-wrap gap-2">{day.moments.map((moment) => <li className="rounded-lg bg-white/[.06] px-2.5 py-1.5 text-sm text-zinc-300" key={moment}>{moment}</li>)}</ul></div></div>)}</div></article>
-    <aside className="glass rounded-[22px] p-6 lg:col-span-4"><p className="text-sm font-medium">Interactive journey map</p><div className="mt-4 relative min-h-48 overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_20%_70%,#a5e0ff,transparent_10%),radial-gradient(circle_at_70%_30%,#f7bddc,transparent_12%),linear-gradient(135deg,#e9f5ff,#eeeaff)]">{trip.experience.map_points.map((point,i)=><button onClick={()=>setActivePoint(point)} className="absolute grid h-9 w-9 place-items-center rounded-full bg-violet-600 text-xs text-white shadow-lg shadow-violet-400/40 transition hover:scale-125" style={{left:`${15+i*16}%`,top:`${65-(i%2)*38}%`}} title={point} key={point}>✦</button>)}<svg className="absolute inset-0 h-full w-full"><path d="M 45 140 Q 110 35 185 95 T 290 45" fill="none" stroke="#8b7bff" strokeDasharray="5 7" strokeWidth="2"/></svg></div>{activePoint&&<div className="mt-3 rounded-xl bg-white/60 p-3 text-sm text-zinc-600"><b>{activePoint}</b><p className="mt-1">Best visited in the golden hour. Tap a marker to explore its local story, food and photo moments.</p></div>}<div className="mt-4 space-y-2">{trip.experience.map_points.map((point) => <button onClick={()=>setActivePoint(point)} className="block text-left text-sm text-zinc-500 hover:text-violet-700" key={point}>✦ {point}</button>)}</div></aside></section>
+    <aside className="glass rounded-[22px] p-6 lg:col-span-4"><p className="text-sm font-medium">Interactive journey map</p><div className="mt-4"><JourneyGlobe destination={trip.destination} mapPoints={trip.experience.map_points} activePoint={activePoint} onPointSelect={setActivePoint} onDestinationResolved={({flag: destinationFlag}) => setResolvedFlag(destinationFlag)} /></div>{activePoint&&<div className="mt-3 rounded-xl bg-white/60 p-3 text-sm text-zinc-600"><b>{activePoint}</b><p className="mt-1">Best visited in the golden hour. Tap a marker to explore its local story, food and photo moments.</p></div>}<div className="mt-4 space-y-2">{trip.experience.map_points.map((point) => <button onClick={()=>setActivePoint(point)} className="block text-left text-sm text-zinc-500 hover:text-violet-700" key={point}>✦ {point}</button>)}</div></aside></section>
     <section className="mt-4 grid gap-4 md:grid-cols-3"><article className="glass rounded-[22px] p-5"><p className="text-sm font-medium">Budget</p><p className="mt-2 text-2xl">{trip.currency} {total.toLocaleString()}</p><p className="mt-1 text-xs text-zinc-500">of {trip.currency} {trip.budget.toLocaleString()} planned</p><div className="mt-5 space-y-3">{trip.experience.budget_breakdown.map((item) => <div className="flex justify-between text-sm" key={item.category}><span className="text-zinc-400">{item.category}</span><span>{item.amount.toLocaleString()}</span></div>)}</div></article>
     <article className="glass rounded-[22px] p-5"><p className="text-sm font-medium">Weather window</p><p className="mt-4 text-sm leading-6 text-zinc-300">{trip.experience.weather.summary}</p><p className="mt-4 text-xs font-medium uppercase tracking-wider text-violet-200">Pack smart</p><p className="mt-2 text-sm text-zinc-400">{trip.experience.weather.packing_note}</p><p className="mt-3 text-sm text-zinc-400">{trip.experience.weather.contingency}</p></article>
     <article className="glass rounded-[22px] p-5"><p className="text-sm font-medium">Food radar</p><div className="mt-4 space-y-4">{trip.experience.food.map((food) => <div key={food.name}><div className="flex justify-between text-sm"><span>{food.name}</span><span className="text-violet-200">{food.price}</span></div><p className="mt-1 text-xs text-zinc-500">{food.neighborhood} · {food.why}</p></div>)}</div></article></section>

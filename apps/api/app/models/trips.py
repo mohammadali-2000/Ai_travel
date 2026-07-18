@@ -51,7 +51,7 @@ class TripExperience(BaseModel):
     premise: str
     map_center: str
     map_points: list[str] = Field(min_length=3, max_length=6)
-    itinerary: list[ExperienceDay] = Field(min_length=2, max_length=7)
+    itinerary: list[ExperienceDay] = Field(min_length=2, max_length=21)
     budget_breakdown: list[BudgetLine] = Field(min_length=3, max_length=6)
     weather: WeatherWindow
     food: list[FoodPick] = Field(min_length=3, max_length=5)
