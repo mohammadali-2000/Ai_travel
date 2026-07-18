@@ -18,11 +18,12 @@ async def stream_journey_concept(intent: str) -> AsyncIterator[str]:
     if not settings.openai_api_key:
         raise ValueError("AI service is not configured. Add OPENAI_API_KEY to apps/api/.env.")
 
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    client = AsyncOpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url)
     async with client.responses.stream(
         model=settings.openai_model,
         instructions=COORDINATOR_INSTRUCTIONS,
         input=intent,
+        max_output_tokens=300,
     ) as stream:
         async for event in stream:
             if event.type == "response.output_text.delta":

@@ -21,7 +21,7 @@ def _client() -> AsyncOpenAI:
     settings = get_settings()
     if not settings.openai_api_key:
         raise ValueError("AI service is not configured. Add OPENAI_API_KEY to apps/api/.env.")
-    return AsyncOpenAI(api_key=settings.openai_api_key)
+    return AsyncOpenAI(api_key=settings.openai_api_key, base_url=settings.openai_base_url)
 
 
 def _supabase() -> Client:
@@ -41,6 +41,7 @@ async def _run_agent(name: str, instruction: str, trip: TripCreate) -> tuple[str
         instructions=(f"You are the {name} for an AI-native travel experience. {instruction} "
                       "Return concise planning notes. Do not make bookings, claim live data, or invent exact business facts."),
         input=_brief(trip),
+        max_output_tokens=500,
     )
     return name, response.output_text
 
@@ -55,6 +56,7 @@ async def generate_experience(trip: TripCreate) -> tuple[TripExperience, list[Ag
 Return ONLY valid JSON matching the supplied schema. Use only sound general knowledge and specialist notes.
 Never claim live availability, live weather, prices, reservations, or exact opening hours. Budget amounts must add up to at most the stated budget.""",
         input=f"TRIP BRIEF\n{_brief(trip)}\n\nSPECIALIST NOTES\n{research}\n\nJSON SCHEMA\n{schema}",
+        max_output_tokens=1_500,
     )
     try:
         experience = TripExperience.model_validate_json(synthesis.output_text)
