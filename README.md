@@ -2,13 +2,11 @@
 
 > **AI agents that turn your travel idea into a full trip plan in seconds.**
 
-RoamVerse is an AI-native travel planning app built for the **OpenAI Build Week Community Hackathon**. You describe where you want to go, and a team of 5 specialized AI agents collaboratively build you a complete, shareable travel plan — with a daily itinerary, budget breakdown, weather insights, food guide, and an interactive globe map.
+https://github.com/mohammadali-2000/Ai_travel/releases/download/v1.0.0/Project_Demo.mp4
 
 ---
 
-## Demo
-
-https://github.com/mohammadali-2000/Ai_travel/assets/Project_Demo.mp4
+RoamVerse is an AI-native travel planning app built for the **OpenAI Build Week Community Hackathon**. You describe where you want to go, and a team of 5 specialized AI agents collaboratively build you a complete, shareable travel plan — with a daily itinerary, budget breakdown, weather insights, food guide, and an interactive globe map.
 
 ---
 
