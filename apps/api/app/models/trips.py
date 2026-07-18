@@ -8,7 +8,7 @@ class TripCreate(BaseModel):
     destination: str = Field(min_length=2, max_length=120)
     start_date: date
     end_date: date
-    budget: int = Field(ge=100, le=100_000)
+    budget: int = Field(ge=100, le=10_000_000)
     currency: str = Field(default="USD", min_length=3, max_length=3)
     travelers: int = Field(default=1, ge=1, le=12)
     intent: str = Field(default="", max_length=1_000)
