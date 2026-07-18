@@ -4,17 +4,27 @@
 
 :root { color-scheme: dark; }
 * { box-sizing: border-box; }
-html { background: #1b1d22; }
-body { margin: 0; min-width: 320px; background: #1b1d22; color: #f1f3f6; font-family: Geist, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-button, input { font: inherit; }
-::selection { background: rgba(195, 174, 255, .35); }
+html, body { min-height: 100%; background: #07070b; }
+body { margin: 0; color: #f5f5f7; font-family: Geist, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+button, input, textarea, select { font: inherit; }
+::selection { background: rgba(177, 153, 255, .36); }
 
-.aurora-page { background: radial-gradient(ellipse 72% 40% at 50% -12%, rgba(123, 108, 199, .17), transparent 68%), #1b1d22; }
-.aurora-orb { filter: blur(18px); background: radial-gradient(circle at 35% 30%, rgba(205, 194, 255, .20), rgba(111, 104, 253, .10) 42%, transparent 70%); }
-.glass { border: 1px solid rgba(255,255,255,.035); background: #20232a; box-shadow: 11px 11px 24px #13151a, -9px -9px 21px #292d34, inset 1px 1px 1px rgba(255,255,255,.035), inset -1px -1px 1px rgba(0,0,0,.2); }
-.card-hover { transition: transform .28s ease, box-shadow .28s ease, background .28s ease; }
-.card-hover:hover { transform: translateY(-2px); background: #23262e; box-shadow: 14px 14px 28px #13151a, -10px -10px 23px #2b2f37, inset 1px 1px 1px rgba(255,255,255,.04); }
-.glass input, .glass textarea { border-color: transparent !important; background: #1b1d22 !important; box-shadow: inset 4px 4px 8px #14161a, inset -3px -3px 7px #242832; }
-.glass button:not([class*="bg-white"]), .glass a.rounded-xl { box-shadow: 4px 4px 9px #15171c, -3px -3px 8px #292d35; }
-.shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); background-size: 200% 100%; animation: shimmer 1.8s linear infinite; }
+.aurora-page { min-height: 100vh; background: radial-gradient(ellipse 70% 45% at 52% -12%, rgba(106, 89, 225, .25), transparent 68%), radial-gradient(ellipse 45% 30% at 8% 48%, rgba(45, 151, 202, .10), transparent 70%), #07070b; }
+.aurora-blob { position: absolute; border-radius: 999px; pointer-events: none; filter: blur(45px); opacity: .4; animation: float 15s ease-in-out infinite alternate; }
+.aurora-blob.one { width: 28rem; height: 28rem; top: -12rem; right: 10%; background: #735de3; }
+.aurora-blob.two { width: 20rem; height: 20rem; top: 35%; left: -10rem; background: #158db3; animation-delay: -7s; }
+.aurora-blob.three { width: 18rem; height: 18rem; right: -6rem; bottom: 10%; background: #c06caf; animation-delay: -3s; }
+.glass { border: 1px solid rgba(255,255,255,.105); background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.035)); box-shadow: 0 24px 60px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.06); backdrop-filter: blur(22px); }
+.glass-strong { border: 1px solid rgba(255,255,255,.15); background: linear-gradient(140deg, rgba(27,27,39,.92), rgba(15,15,21,.82)); box-shadow: 0 30px 80px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.08); backdrop-filter: blur(30px); }
+.animated-border { position: relative; isolation: isolate; }
+.animated-border::before { content: ""; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; background: conic-gradient(from var(--angle), transparent 20%, rgba(184,166,255,.65), transparent 40%, rgba(103,210,255,.4), transparent 64%); animation: spin-border 7s linear infinite; opacity: .75; }
+.card-hover { transition: transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s ease, background .3s ease; }
+.card-hover:hover { transform: translateY(-4px); border-color: rgba(211,202,255,.3); background: rgba(255,255,255,.11); }
+.input-glass { width: 100%; border: 1px solid rgba(255,255,255,.1); border-radius: .85rem; background: rgba(0,0,0,.2); color: #fff; outline: none; transition: border .2s, box-shadow .2s; }
+.input-glass:focus { border-color: rgba(181,166,255,.75); box-shadow: 0 0 0 4px rgba(137,112,255,.12); }
+.shimmer { background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.17) 50%, transparent 70%); background-size: 200% 100%; animation: shimmer 1.8s infinite; }
+.skeleton { overflow: hidden; border-radius: .75rem; background: rgba(255,255,255,.07); }
+@property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes float { to { transform: translate3d(3rem, 2rem, 0) scale(1.15); } }
+@keyframes spin-border { to { --angle: 360deg; } }
 @keyframes shimmer { to { background-position: -200% 0; } }
