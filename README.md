@@ -12,6 +12,8 @@
 
 <br/>
 
+### 🚀 [Try it Live Here: ai-travel-cyan.vercel.app](https://ai-travel-cyan.vercel.app)
+
 **Describe your trip in plain words. 5 AI agents turn it into a complete, shareable travel plan in seconds.**
 
 <br/>
