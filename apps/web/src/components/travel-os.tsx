@@ -26,7 +26,7 @@ function ownerId() {
 }
 
 export function TravelOS() {
-  const [form, setForm] = useState({ destination: '', start_date: '', end_date: '', budget: '2500', currency: 'USD', travelers: '1', intent: '' });
+  const [form, setForm] = useState({ destination: '', start_date: '', end_date: '', budget: '', currency: '', travelers: '1', intent: '' });
   const [plannerPrompt, setPlannerPrompt] = useState('');
   const [extracted, setExtracted] = useState(false);
   const [intent, setIntent] = useState<TripIntent | null>(null);
@@ -49,11 +49,11 @@ export function TravelOS() {
     setForm((current) => ({
       ...current,
       destination: parsed.destination.value || current.destination,
-      start_date: parsed.startDate.value || current.start_date,
-      end_date: parsed.endDate.value || current.end_date,
-      budget: parsed.budget.value ? String(parsed.budget.value) : current.budget,
-      currency: parsed.currency.value || current.currency,
-      travelers: parsed.travelerCount.value ? String(parsed.travelerCount.value) : current.travelers,
+      start_date: parsed.startDate.value || '',
+      end_date: parsed.endDate.value || '',
+      budget: parsed.budget.value ? String(parsed.budget.value) : '',
+      currency: parsed.currency.value || '',
+      travelers: parsed.travelerCount.value ? String(parsed.travelerCount.value) : '1',
       intent: plannerPrompt,
     }));
     setExtracted(true);
@@ -86,7 +86,8 @@ export function TravelOS() {
     ...(intent.tripType ? [['♡', intent.tripType]] : []),
     ...intent.interests.map((interest) => ['✦', interest]),
   ] as Array<[string, string | undefined]> : [];
-  const missingMessage = intent?.missing.filter((item) => item !== 'destination') ?? [];
+  const missingMessage = intent?.missing.filter((item) => item !== 'destination' && !(item === 'budget' && form.budget)) ?? [];
+  const budgetStillMissing = Boolean(intent?.missing.includes('budget') && !form.budget);
 
   return <main className="aurora-page relative min-h-screen overflow-hidden px-4 py-4 sm:px-7">
     <div className="aurora-blob one" /><div className="aurora-blob two" />
@@ -109,11 +110,18 @@ export function TravelOS() {
             </div>}
             {extracted && intent && !intent.isConfident && <p className="mt-4 text-sm text-amber-700">I couldn&apos;t understand part of your request. Where would you like to go?</p>}
             {extracted && intent?.isConfident && missingMessage.length > 0 && <p className="mt-4 text-sm text-zinc-600">I understood your destination. I still need your {missingMessage.join(' and ')}.</p>}
+            {extracted && intent?.isConfident && budgetStillMissing && <div className="mt-4 rounded-2xl border border-violet-100 bg-violet-50/70 p-4">
+              <label className="block text-sm font-medium text-violet-900" htmlFor="planner-budget">What budget should I plan around?</label>
+              <div className="mt-2 flex gap-2">
+                <input id="planner-budget" type="number" min="1" step="1" inputMode="numeric" placeholder="25000" value={form.budget} onChange={(event) => setForm({ ...form, budget: event.target.value, currency: form.currency || 'INR' })} className="input-glass min-w-0 flex-1 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400" />
+                <select aria-label="Budget currency" value={form.currency || 'INR'} onChange={(event) => setForm({ ...form, currency: event.target.value })} className="rounded-xl border border-violet-100 bg-white px-3 py-2 text-sm text-zinc-800 outline-none"><option value="INR">INR ₹</option><option value="USD">USD $</option><option value="EUR">EUR €</option><option value="GBP">GBP £</option></select>
+              </div>
+            </div>}
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="text-sm text-zinc-600">Start date<input required type="date" value={form.start_date} onChange={(event) => setForm({ ...form, start_date: event.target.value })} className={field} /></label>
               <label className="text-sm text-zinc-600">End date<input required type="date" value={form.end_date} onChange={(event) => setForm({ ...form, end_date: event.target.value })} className={field} /></label>
             </div>
-            <button disabled={loading || !form.destination || Boolean(intent?.missing.includes('budget'))} className="mt-5 w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-medium text-white transition hover:scale-[1.01] disabled:opacity-50">{loading ? 'Your team is building the journey…' : 'Create my travel experience →'}</button>
+            <button disabled={loading || !form.destination || budgetStillMissing} className="mt-5 w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-medium text-white transition hover:scale-[1.01] disabled:opacity-50">{loading ? 'Your team is building the journey…' : 'Create my travel experience →'}</button>
             {error && <p role="alert" className="mt-3 text-sm text-rose-500">{error}</p>}
           </form>
         </section>
