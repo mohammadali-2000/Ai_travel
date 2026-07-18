@@ -30,7 +30,7 @@
 
 ## 🎬 Demo
 
-https://github.com/mohammadali-2000/Ai_travel/releases/download/v1.0.0/Project_Demo_FULL.mp4
+https://github.com/mohammadali-2000/Ai_travel/raw/main/Project_Demo.mp4
 
 ---
 
