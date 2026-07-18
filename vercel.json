@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm --workspace @roamverse/web run build",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://roamverse-api.onrender.com/api/v1/:path*"
+    }
+  ]
+}

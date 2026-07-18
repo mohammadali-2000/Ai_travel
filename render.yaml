@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: roamverse-api
+    runtime: python
+    rootDir: apps/api
+    buildCommand: pip install -e '.[dev]'
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: tencent/hy3:free
+      - key: OPENAI_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
