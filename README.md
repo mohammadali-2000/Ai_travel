@@ -2,7 +2,7 @@
 
 > **AI agents that turn your travel idea into a full trip plan in seconds.**
 
-https://github.com/mohammadali-2000/Ai_travel/releases/download/v1.0.0/Project_Demo.mp4
+https://github.com/mohammadali-2000/Ai_travel/releases/download/v1.0.0/Project_Demo_FULL.mp4
 
 ---
 
