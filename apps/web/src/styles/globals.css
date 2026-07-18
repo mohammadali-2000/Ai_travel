@@ -24,6 +24,15 @@ button, input, textarea, select { font: inherit; }
 .input-glass:focus { border-color: rgba(181,166,255,.75); box-shadow: 0 0 0 4px rgba(137,112,255,.12); }
 .shimmer { background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.17) 50%, transparent 70%); background-size: 200% 100%; animation: shimmer 1.8s infinite; }
 .skeleton { overflow: hidden; border-radius: .75rem; background: rgba(255,255,255,.07); }
+.mission-grid { position: absolute; inset: 0; opacity: .18; background-image: linear-gradient(rgba(181, 166, 255, .12) 1px, transparent 1px), linear-gradient(90deg, rgba(181, 166, 255, .12) 1px, transparent 1px); background-size: 34px 34px; mask-image: radial-gradient(ellipse 78% 70% at 50% 50%, black, transparent); }
+.mission-orb { position: absolute; width: 34rem; height: 34rem; border-radius: 999px; filter: blur(76px); opacity: .32; pointer-events: none; animation: mission-drift 12s ease-in-out infinite alternate; }
+.mission-orb-one { top: -17rem; left: -12rem; background: #6d4eff; }
+.mission-orb-two { right: -13rem; bottom: -20rem; background: #147bc7; animation-delay: -6s; }
+.mission-panel { border: 1px solid rgba(255,255,255,.12); background: linear-gradient(135deg, rgba(24, 22, 52, .76), rgba(10, 21, 45, .68)); box-shadow: 0 28px 100px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.08); backdrop-filter: blur(26px); }
+.mission-agent { border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.035); transition: border-color .3s ease, box-shadow .3s ease, background .3s ease; }
+.mission-agent-active { border-color: rgba(196,181,253,.48); background: linear-gradient(135deg, rgba(139,92,246,.19), rgba(14,165,233,.08)); box-shadow: 0 10px 30px rgba(108,92,231,.15), inset 0 1px rgba(255,255,255,.08); }
+.mission-agent-complete { border-color: rgba(110,231,183,.18); background: rgba(110,231,183,.035); }
+@keyframes mission-drift { to { transform: translate3d(4rem, 2rem, 0) scale(1.15); } }
 @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 @keyframes float { to { transform: translate3d(3rem, 2rem, 0) scale(1.15); } }
 @keyframes spin-border { to { --angle: 360deg; } }
