@@ -1,5 +1,5 @@
-import asyncio
 import json
+import re
 import secrets
 from uuid import uuid4
 
@@ -16,6 +16,8 @@ AGENT_PROMPTS = {
     "Food Agent": "Curate distinctive food moments with neighborhood, reason, and price tier. Do not claim reservations or current opening hours.",
 }
 
+_LOCAL_TRIPS: dict[str, TripRecord] = {}
+
 
 def _client() -> AsyncOpenAI:
     settings = get_settings()
@@ -29,6 +31,11 @@ def _supabase() -> Client:
     if not settings.supabase_url or not settings.supabase_service_role_key:
         raise ValueError("Trip storage is not configured. Add Supabase credentials to apps/api/.env.")
     return create_client(settings.supabase_url, settings.supabase_service_role_key)
+
+
+def _uses_supabase() -> bool:
+    settings = get_settings()
+    return bool(settings.supabase_url and settings.supabase_service_role_key)
 
 
 def _brief(trip: TripCreate) -> str:
@@ -47,7 +54,9 @@ async def _run_agent(name: str, instruction: str, trip: TripCreate) -> tuple[str
 
 
 async def generate_experience(trip: TripCreate) -> tuple[TripExperience, list[AgentStatus]]:
-    results = await asyncio.gather(*[_run_agent(name, prompt, trip) for name, prompt in AGENT_PROMPTS.items()])
+    results = []
+    for name, prompt in AGENT_PROMPTS.items():
+        results.append(await _run_agent(name, prompt, trip))
     research = "\n\n".join(f"{name}:\n{text}" for name, text in results)
     schema = json.dumps(TripExperience.model_json_schema())
     synthesis = await _client().responses.create(
@@ -56,10 +65,12 @@ async def generate_experience(trip: TripCreate) -> tuple[TripExperience, list[Ag
 Return ONLY valid JSON matching the supplied schema. Use only sound general knowledge and specialist notes.
 Never claim live availability, live weather, prices, reservations, or exact opening hours. Budget amounts must add up to at most the stated budget.""",
         input=f"TRIP BRIEF\n{_brief(trip)}\n\nSPECIALIST NOTES\n{research}\n\nJSON SCHEMA\n{schema}",
-        max_output_tokens=1_500,
+        max_output_tokens=3_000,
     )
+    raw_output = synthesis.output_text.strip()
+    json_match = re.search(r"\{.*\}", raw_output, flags=re.DOTALL)
     try:
-        experience = TripExperience.model_validate_json(synthesis.output_text)
+        experience = TripExperience.model_validate_json(json_match.group(0) if json_match else raw_output)
     except ValueError as exc:
         raise ValueError("The AI response could not be validated. Please try generating this trip again.") from exc
     agents = [AgentStatus(agent=name, status="complete") for name in AGENT_PROMPTS]
@@ -68,20 +79,29 @@ Never claim live availability, live weather, prices, reservations, or exact open
 
 def save_trip(trip: TripCreate, experience: TripExperience, agents: list[AgentStatus]) -> TripRecord:
     record = TripRecord(id=str(uuid4()), owner_id=trip.owner_id, destination=trip.destination, start_date=trip.start_date, end_date=trip.end_date, budget=trip.budget, currency=trip.currency, travelers=trip.travelers, intent=trip.intent, share_slug=secrets.token_urlsafe(8), experience=experience, agents=agents)
-    _supabase().table("trips").insert(record.model_dump(mode="json")).execute()
+    if _uses_supabase():
+        _supabase().table("trips").insert(record.model_dump(mode="json")).execute()
+    else:
+        _LOCAL_TRIPS[record.id] = record
     return record
 
 
 def fetch_trip(trip_id: str) -> TripRecord | None:
+    if not _uses_supabase():
+        return _LOCAL_TRIPS.get(trip_id)
     response = _supabase().table("trips").select("*").eq("id", trip_id).maybe_single().execute()
     return TripRecord.model_validate(response.data) if response.data else None
 
 
 def list_trips(owner_id: str) -> list[TripRecord]:
+    if not _uses_supabase():
+        return [trip for trip in _LOCAL_TRIPS.values() if trip.owner_id == owner_id]
     response = _supabase().table("trips").select("*").eq("owner_id", owner_id).order("created_at", desc=True).execute()
     return [TripRecord.model_validate(item) for item in response.data]
 
 
 def fetch_shared_trip(share_slug: str) -> TripRecord | None:
+    if not _uses_supabase():
+        return next((trip for trip in _LOCAL_TRIPS.values() if trip.share_slug == share_slug), None)
     response = _supabase().table("trips").select("*").eq("share_slug", share_slug).maybe_single().execute()
     return TripRecord.model_validate(response.data) if response.data else None
